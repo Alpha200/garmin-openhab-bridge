@@ -31,3 +31,22 @@ async def send_command(name: str, item: Item, authorization: Annotated[Union[str
         raise HTTPException(status_code=result.status_code, detail=result.text)
     else:
         return {}
+
+
+@app.get("/items/{name}/state")
+async def get_state(name: str, authorization: Annotated[Union[str, None], Header()] = None):
+    if authorization is None:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    headers = {
+        "Authorization": authorization,
+    }
+
+    result = requests.get(f"{base_url}/rest/items/{name}/state", headers=headers)
+
+    if result.status_code == 404:
+        raise HTTPException(status_code=404, detail="Item not found")
+    elif result.status_code != 200:
+        raise HTTPException(status_code=result.status_code, detail=result.text)
+    else:
+        return {'status': result.text}
